@@ -5,7 +5,7 @@
 AI Data Chatbot Usage Steps
 =======================
 
-Step 1) Create the clone of the repository in your created virtual environment
+Step 1) Create the clone of the repository
 
 .. code:: bash
 
