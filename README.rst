@@ -10,11 +10,11 @@ Step 1) Create the clone of the repository
 .. code:: bash
 
 	git clone https://github.com/PhonyEX/ai-data-chatbot.git
-	pip install -r requirements.txt
+	pip install -r ai-data-chatbot/requirements.txt
 	
 Step 2) Launch APP
 
 .. code:: bash
 	
-	streamlit run main.py
+	streamlit run ai-data-chatbot/main.py
 
