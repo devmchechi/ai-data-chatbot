@@ -11,9 +11,6 @@ import seaborn as sns
 import scipy.stats as stats
 import datapane as dp
 
-def check_password():
-    return True
-
 def generate_insights_one(df):
     insights = []
 
@@ -126,82 +123,93 @@ def render_sql_view(df):
     view = dp.Blocks(dp.DataTable(df))
     return dp.save_report(view, path="SQL_Rendered_View.html", open=True)
 
-st.title("Conversational Data Chatbot")
-fig = None
-#response_history = []
 response_history = st.session_state.get("response_history", [])
 st.session_state.openai_key = 'OPEN_AI_KEY'
-st.session_state.prompt_history = []
+prompt_history = st.session_state.get("prompt_history", [])
 st.session_state.df = None
 
-if "openai_key" in st.session_state:
+def intro():
+    st.title("Conversational Data Chatbot")
+    fig = None
+
     if st.session_state.df is None:
         uploaded_file = st.file_uploader(
             "Choose a Single CSV File..",
-            type="csv",
+            type="csv", 
         )
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
             st.session_state.df = df
             
-    if st.session_state.df is not None:
-        st.subheader("Peek into the uploaded dataframe:")
-        st.write(st.session_state.df.head(2))
 
-    with st.form("Question"):
-        question = st.text_area("Question", value="", help="Enter your queries here")
-        #answer = st.text_area("Answer", value="")
-        submitted = st.form_submit_button("Submit")
-        if submitted:
-            with st.spinner():
-                llm = OpenAI(api_token=st.session_state.openai_key)
-                pandas_ai = PandasAI(llm)
-                x = pandas_ai.run(st.session_state.df, prompt=question)
+    if prompt := st.chat_input("Enter Question"):
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            llm = OpenAI(api_token=st.session_state.openai_key)
+            pandas_ai = PandasAI(llm)
+            x = pandas_ai.run(st.session_state.df, prompt=prompt)
+
+            if "insights" in prompt.lower():
+                insights = generate_insights_one(st.session_state.df)
+                st.write(insights)
                 
-                if "insights" in question.lower():
-                    insights = generate_insights_one(st.session_state.df)
-                    st.write(insights)
-                elif "trends" in question.lower() or "patterns" in question.lower():
-                    trends_and_patterns = generate_trends_and_patterns_one(st.session_state.df)
-                    for fig in trends_and_patterns:
-                        st.pyplot(fig)
-                elif "aggregate" in question.lower():
-                    columns = question.lower().split("aggregate ")[1].split(" and ")
-                    aggregated_data = aggregate_data(st.session_state.df, columns)
-                    st.subheader("Aggregated Data:")
-                    st.write(aggregated_data)
-                elif "profile" in question.lower():
-                    profile = generate_profile_report(st.session_state.df)
-                    if profile:
-                        st.write("Check Profile Report in root directory")
-                elif "sql" in question.lower() or "SQL" in question.lower() or "view" in question.lower() or "VIEW" in question.lower():
-                    render_sql_view(st.session_state.df)
-                    st.write("SQL View Rendered.. Check 'SQL_Rendered_View.html' file")
-                                 
-                fig = plt.gcf()
-                #fig, ax = plt.subplots(figsize=(10, 6))
-                plt.tight_layout()
-                if fig.get_axes() and fig is not None:
+            elif "trends" in prompt.lower() or "patterns" in prompt.lower():
+                trends_and_patterns = generate_trends_and_patterns_one(st.session_state.df)
+                for fig in trends_and_patterns:
                     st.pyplot(fig)
-                    fig.savefig("plot.png")
-                st.write(x)
-                st.session_state.prompt_history.append(question)
-                response_history.append(x)  # Append the response to the list
-                st.session_state.response_history = response_history
-    
+                    
+            elif "aggregate" in prompt.lower():
+                columns = prompt.lower().split("aggregate ")[1].split(" and ")
+                aggregated_data = aggregate_data(st.session_state.df, columns)
+                st.subheader("Aggregated Data:")
+                st.write(aggregated_data)
+                
+            elif "profile" in prompt.lower():
+                profile = generate_profile_report(st.session_state.df)
+                if profile:
+                    st.write("Check Profile Report in root directory")
+            elif "sql" in prompt.lower() or "SQL" in prompt.lower() or "view" in prompt.lower() or "VIEW" in prompt.lower():
+                render_sql_view(st.session_state.df)
+                st.write("SQL View Rendered.. Check 'SQL_Rendered_View.html' file")
+            fig = plt.gcf()
+            #fig, ax = plt.subplots(figsize=(10, 6))
+            plt.tight_layout()
+            if fig.get_axes() and fig is not None:
+                st.pyplot(fig)
+                fig.savefig("plot.png")
+            st.write(x)
+            response_history.append(x)
+            prompt_history.append(prompt)
+            st.session_state.response_history = response_history
+            st.session_state.prompt_history = prompt_history
+
+def history():
+    st.title("ChatBot History")
+
     st.subheader("Prompt history:")
-    st.write(st.session_state.prompt_history)
+    for prompt in prompt_history:
+        st.write("\n")
+        st.write(prompt)
+        st.write("\n")
     
     st.subheader("Prompt response:")
     for response in response_history:
+        st.write("\n")
         st.write(response)
- 
-if st.button("Clear"):
-    st.session_state.prompt_history = []
-    st.session_state.response_history = []
-    st.session_state.df = None
-        
-if st.button("Save Results", key=0):
-    with open("historical_data.txt", "w") as f:
-        for response in response_history:
-            f.write(response + "\n")
+        st.write("\n")
+    
+    if st.button("Clear"):
+        st.session_state.prompt_history = []
+        st.session_state.response_history = []
+        st.session_state.df = None
+
+page_names_to_funcs = {
+    "ChatBot": intro,
+    "History": history
+}
+
+pages = st.sidebar.selectbox("Choose", page_names_to_funcs.keys())
+page_func = page_names_to_funcs[pages]
+page_func()
