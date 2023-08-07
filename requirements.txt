@@ -12,3 +12,4 @@ seaborn==0.12.2
 lux-api==0.5.1
 datapane==0.16.7
 streamlit==1.25.0
+matplotlib
