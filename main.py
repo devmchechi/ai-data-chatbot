@@ -1,15 +1,16 @@
 import streamlit as st
-import pandas as pd
 from IPython.display import display
 import numpy as np
 import lux
 from pandasai import PandasAI
 from pandasai.llm.openai import OpenAI
+import matplotlib
 import matplotlib.pyplot as plt
 from pandas_profiling import ProfileReport
 import seaborn as sns
 import scipy.stats as stats
 import datapane as dp
+import pandas as pd
 
 def generate_insights_one(df):
     insights = []
@@ -123,10 +124,12 @@ def render_sql_view(df):
     view = dp.Blocks(dp.DataTable(df))
     return dp.save_report(view, path="SQL_Rendered_View.html", open=True)
 
+
 response_history = st.session_state.get("response_history", [])
-st.session_state.openai_key = 'OPEN_AI_KEY'
+st.session_state.openai_key = 'OPEN-API-KEY'
 prompt_history = st.session_state.get("prompt_history", [])
 st.session_state.df = None
+matplotlib.use('TkAgg')
 
 def intro():
     st.title("Conversational Data Chatbot")
@@ -149,8 +152,7 @@ def intro():
             message_placeholder = st.empty()
             llm = OpenAI(api_token=st.session_state.openai_key)
             pandas_ai = PandasAI(llm)
-            x = pandas_ai.run(st.session_state.df, prompt=prompt)
-
+            x = pandas_ai(st.session_state.df, prompt=prompt)
             if "insights" in prompt.lower():
                 insights = generate_insights_one(st.session_state.df)
                 st.write(insights)
@@ -173,15 +175,14 @@ def intro():
             elif "sql" in prompt.lower() or "SQL" in prompt.lower() or "view" in prompt.lower() or "VIEW" in prompt.lower():
                 render_sql_view(st.session_state.df)
                 st.write("SQL View Rendered.. Check 'SQL_Rendered_View.html' file")
-            fig = plt.gcf()
-            #fig, ax = plt.subplots(figsize=(10, 6))
-            plt.tight_layout()
-            if fig.get_axes() and fig is not None:
-                st.pyplot(fig)
-                fig.savefig("plot.png")
-            st.write(x)
-            response_history.append(x)
-            prompt_history.append(prompt)
+            elif "histogram" in prompt.lower() or "chart" in prompt.lower() or "bar chart" in prompt.lower() or "line chart" in prompt.lower():
+                fig_number = plt.get_fignums()
+                if fig_number:
+                    st.pyplot(plt.gcf())
+                else:
+                    st.write("Did you get the popup? If not, enable pop-ups and try again!")
+            else:
+                st.write(x)
             st.session_state.response_history = response_history
             st.session_state.prompt_history = prompt_history
 
