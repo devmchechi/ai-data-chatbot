@@ -183,6 +183,8 @@ def intro():
                     st.write("Did you get the popup? If not, enable pop-ups and try again!")
             else:
                 st.write(x)
+            response_history.append(x)
+            prompt_history.append(prompt)
             st.session_state.response_history = response_history
             st.session_state.prompt_history = prompt_history
 
