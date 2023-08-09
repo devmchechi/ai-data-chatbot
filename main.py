@@ -143,7 +143,7 @@ matplotlib.use('TkAgg')
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.image('YOUR-IMAGE', width=250)
+    st.image('YOUR-IMAGE', width=180)
 with col2:
     st.write(' ')
 with col3:
@@ -186,7 +186,7 @@ if prompt := st.chat_input("Enter Question"):
             
         if "insights" in prompt.lower():
             insights = generate_insights_one(st.session_state.df)
-            st.write(insights)
+            x = st.write(insights)
 
         elif "trends" in prompt.lower() or "patterns" in prompt.lower():
             trends_and_patterns = generate_trends_and_patterns_one(
@@ -198,22 +198,22 @@ if prompt := st.chat_input("Enter Question"):
             columns = prompt.lower().split("aggregate ")[1].split(" and ")
             aggregated_data = aggregate_data(st.session_state.df, columns)
             st.subheader("Aggregated Data:")
-            st.write(aggregated_data)
+            x = st.write(aggregated_data)
 
         elif "profile" in prompt.lower():
             profile = generate_profile_report(st.session_state.df)
             if profile:
-                st.write("Check Profile Report in root directory")
+                x = st.write("Check Profile Report in root directory")
         elif "sql" in prompt.lower() or "SQL" in prompt.lower() or "view" in prompt.lower() or "VIEW" in prompt.lower():
             render_sql_view(st.session_state.df)
-            st.write("SQL View Rendered.. Check 'SQL_Rendered_View.html' file")
+            x = st.write("SQL View Rendered.. Check 'SQL_Rendered_View.html' file")
         elif "histogram" in prompt.lower() or "chart" in prompt.lower() or "bar chart" in prompt.lower() or "line chart" in prompt.lower():
             fig_number = plt.get_fignums()
             if fig_number:
                 st.pyplot(plt.gcf())
             else:
-                st.write(
-                    "Did you get the popup? If not, enable pop-ups and try again!")
+                x = "Did you get the popup? If not, enable pop-ups and try again!"
+                st.write(x)
         else:
             st.write(x)
         
