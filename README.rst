@@ -1,4 +1,4 @@
-`AI Data Chatbot`: An open-source, low-code python application with Generative AI capabilities using Streamlit for in-depth conversational data analysis bundled with key additional data functionalities using simple plain key-words
+`The AI Data Chatbot`: An open-source, low-code python application with Generative AI capabilities using Streamlit for in-depth conversational data analysis bundled with key additional data functionalities using simple plain key-words
 ===============================================================================================================================================================
 
 
